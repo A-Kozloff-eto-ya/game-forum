@@ -1,28 +1,78 @@
 <template>
-  <div class="h-auto max-w-[1000px] w-full bg-(--bg-secondary) border rounded shadow-main flex flex-col gap-4 p-4">
+  <div class="h-auto max-w-[700px] w-full bg-(--bg-secondary) border rounded shadow-main flex flex-col gap-4 p-4">
+
     <div class="text-2xl">{{ props.post.title }}</div>
     <div class="text-base">{{ props.post.description }}</div>
-    <div v-if="props.post.images" class="grid  overflow-hidden grid-cols-3 grid-rows-3 gap-1">
-      <div v-for="image in props.post.images" class=" h-full w-full">
-        <NuxtImg quality="20" loading="lazy" :src="`http://localhost:8055/assets/${image.directus_files_id}`"
-          class="rounded" />
+    <div class="">
+      <div v-if="props.post.images.length === 1" class="w-full aspect-square">
+        <PostImage v-for="image in props.post.images" :image_id="image.directus_files_id" />
       </div>
-      <!-- <UCarousel ref="carousel" v-slot="{ item }" arrows
-        :items="props.post.images.map(image => image.directus_files_id)" :prev="{ onClick: onClickPrev }"
-        :next="{ onClick: onClickNext }" class="w-full max-w-xs mx-auto" @select="onSelect">
-        <pre>{{ item }}</pre>
-        <NuxtImg provider="directus" :src="item" height="512" fit="inside" quality="20"
-          :modifiers="{ withoutEnlargement: 'true' }" />
-      </UCarousel>
 
-      <div class="flex gap-1 justify-between pt-4 max-w-xs mx-auto">
-        <div v-for="(item, index) in props.post.images.map(image => image.directus_files_id)" :key="index"
-          class="size-11 opacity-25 hover:opacity-100 transition-opacity"
-          :class="{ 'opacity-100': activeIndex === index }" @click="select(index)">
-          <NuxtImg provider="directus" :src="item" height="512" fit="inside" quality="20"
-            :modifiers="{ withoutEnlargement: 'true' }" />
+      <div v-else-if="props.post.images.length === 2" class="grid grid-cols-2 gap-2">
+        <PostImage v-for="image in props.post.images" :image_id="image.directus_files_id" />
+      </div>
+
+      <div v-else-if="props.post.images.length === 3" class="grid grid-cols-3 gap-2">
+        <PostImage v-for="image in props.post.images.slice(0, 1)" :image_id="image.directus_files_id"
+          class="col-span-2 row-span-2" />
+        <div class="col-span-1 row-span-2 flex flex-col gap-2">
+          <PostImage v-for="image in props.post.images.slice(1, 3)" :image_id="image.directus_files_id" />
         </div>
-      </div> -->
+      </div>
+
+      <div v-else-if="props.post.images.length === 4" class="grid grid-cols-2 gap-2">
+        <PostImage v-for="image in props.post.images.slice(0, 1)" :image_id="image.directus_files_id"
+          class="col-span-2 row-span-2" />
+      </div>
+
+      <div v-else-if="props.post.images.length === 5" class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2 col-span-3">
+          <PostImage v-for="image in props.post.images.slice(0, 2)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+        <div class="grid grid-cols-3 gap-2 col-span-3">
+          <PostImage v-for="image in props.post.images.slice(2, 5)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+      </div>
+
+      <div v-else-if="props.post.images.length === 6" class="grid grid-cols-4 gap-2">
+        <div class="grid grid-cols-2 gap-2 col-span-4">
+          <PostImage v-for="image in props.post.images.slice(0, 2)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+        <div class="grid grid-cols-4 gap-2 col-span-4">
+          <PostImage v-for="image in props.post.images.slice(2, 6)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+      </div>
+
+      <div v-else-if="props.post.images.length === 7" class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-3 gap-2 col-span-3">
+          <PostImage v-for="image in props.post.images.slice(0, 3)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+        <div class="grid grid-cols-4 gap-2 col-span-3">
+          <PostImage v-for="image in props.post.images.slice(3, 7)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+      </div>
+
+      <div v-else-if="props.post.images.length === 8" class="grid grid-cols-4 gap-2">
+        <div class="grid grid-cols-2 gap-2 col-span-4 row-start-1">
+          <PostImage v-for="image in props.post.images.slice(0, 2)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+        <div class="grid grid-cols-6 gap-2 col-span-4 row-start-2">
+          <PostImage v-for="image in props.post.images.slice(2, 8)" :image_id="image.directus_files_id"
+            class="col-span-1 row-span-1" />
+        </div>
+      </div>
+
+      <div v-else-if="props.post.images.length === 9" class="grid grid-cols-3 grid-rows-3 gap-2">
+        <PostImage v-for="image in props.post.images" :image_id="image.directus_files_id"
+          class="col-span-1 row-span-1" />
+      </div>
     </div>
     <div class="flex flex-row gap-4 justify-between items-center">
       <!-- <UIcon name="ic:sharp-favorite" class="size-7 text-red-500 cursor-pointer" /> -->
@@ -30,14 +80,14 @@
         <UIcon name="ic:sharp-favorite-border" class="size-7 text-red-500 cursor-pointer" />
         <UBadge color="neutral">{{ props.post.likes }}</UBadge>
       </div>
-      <div class="flex flex-row gap-4 justify-between items-center">
-        <UBadge color="neutral">{{ props.post.user_created.first_name }} {{ props.post.user_created.last_name }}
+      <div v-if="props.post.user_created" class="flex flex-row gap-4 justify-between items-center">
+        <UBadge color="neutral" class="cursor-pointer" @click="clickPostAuthor">{{ props.post.user_created.first_name }}
+          {{ props.post.user_created.last_name }}
         </UBadge>
-        <UAvatar src="https://github.com/benjamincanac.png" />
+        <UAvatar src="https://github.com/benjamincanac.png" class="cursor-pointer" @click="clickPostAuthor" />
       </div>
     </div>
   </div>
-
 </template>
 
 <script lang="ts" setup>
@@ -50,23 +100,14 @@ interface PostProps {
 
 const props = defineProps<PostProps>();
 
-const carousel = useTemplateRef('carousel')
-const activeIndex = ref(0)
+const open = ref(false)
 
-function onClickPrev() {
-  activeIndex.value--
-}
-function onClickNext() {
-  activeIndex.value++
-}
-function onSelect(index: number) {
-  activeIndex.value = index
-}
+defineShortcuts({
+  o: () => open.value = !open.value
+})
 
-function select(index: number) {
-  activeIndex.value = index
-
-  carousel.value?.emblaApi?.scrollTo(index)
+const clickPostAuthor = () => {
+  navigateTo(`/user/info/${props.post.user_created?.id}`)
 }
 </script>
 

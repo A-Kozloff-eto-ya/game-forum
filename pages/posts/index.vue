@@ -7,7 +7,7 @@ const { data, error } = await useAsyncData('post', async () => {
 	try {
 		return await $directus.request(
 			$readItems('posts', {
-				fields: ['id', 'title', 'description', 'images', 'likes', 'user_created', "images.*", "user_created.first_name", "user_created.last_name"]
+				fields: ['id', 'title', 'description', 'images', 'likes', 'user_created', "images.*", "user_created.first_name", "user_created.last_name", "user_created.id"]
 			})
 		)
 	} catch (error) {
@@ -33,13 +33,8 @@ const deletePost = async (id: number | string) => {
 }
 </script>
 <template>
-	<div class="flex flex-col gap-8">
+	<div v-if="data" class="flex flex-col gap-8">
 		<Post v-for="post in data" class="border h-fit w-full" :post="post" />
+		 <!-- <pre>{{ data }}</pre> -->
 	</div>
-	<!-- <div v-for="post in data">
-		<h2>{{ post.title }}</h2>
-		<button v-if="authUser.id === post.user_created" @click="deletePost(post.id)">Delete</button>
-		<hr />
-	</div>
-	 -->
 </template>

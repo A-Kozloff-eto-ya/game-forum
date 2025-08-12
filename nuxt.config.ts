@@ -19,7 +19,7 @@ export default defineNuxtConfig({
 		"@nuxtjs/color-mode",
 		"@nuxt/ui",
 		"@nuxt/image",
-		"@nuxt/icon"
+		"@nuxt/icon",
 	],
 	ui: {
 		theme: {

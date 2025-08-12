@@ -20,8 +20,6 @@ const state = reactive({
 const { $directus } = useNuxtApp()
 const router = useRouter()
 
-const email = ref('')
-const password = ref('')
 const errorMsg = ref(null)
 
 const toast = useToast()
@@ -40,19 +38,6 @@ const login = async () => {
 </script>
 <template>
 	<div class="shadow-main border rounded p-4 bg-(--bg-secondary) flex flex-row gap-16">
-		<!-- <form @submit.prevent="login">
-			<h1>Login</h1>
-			<div v-if="errorMsg">
-				<p>{{ errorMsg }}</p>
-			</div>
-			<div>
-				<input required type="text" v-model="email" name="email" placeholder="Email" />
-			</div>
-			<div>
-				<input required type="password" v-model="password" name="password" placeholder="Password" />
-			</div>
-			<button type="submit">Login</button>
-		</form> -->
 		<UForm :schema="schema" :state="state" class="space-y-4" @submit.prevent="login">
 			<UFormField label="Email" name="email">
 				<UInput v-model="state.email" />

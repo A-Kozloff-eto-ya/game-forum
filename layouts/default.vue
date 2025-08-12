@@ -20,7 +20,7 @@ const route = useRoute()
               </NuxtLink>
               <div v-else-if="$isAuth" class="flex flex-row gap-4">
                 <UButton class="cursor-pointer rounded" @click="$logout()">Выйти</UButton>
-                <NuxtLink to="/account">
+                <NuxtLink to="/user/account">
                   <UAvatar :src="`http://localhost:8055/assets/${user.avatar}`" />
                 </NuxtLink>
               </div>
@@ -29,7 +29,7 @@ const route = useRoute()
         </div>
       </div>
     </AppHeader>
-    <slot />
+    <slot/>
     <AppFooter>
       <div class="rounded  h-[50px] w-full">FOTTER</div>
     </AppFooter>

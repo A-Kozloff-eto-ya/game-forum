@@ -20,6 +20,10 @@
     "tailwindcss": "^4.1.11",
     "vue": "latest",
     "vue-router": "latest",
-    "yup": "^1.7.0"
+    "yup": "^1.7.0",
+    "zod": "^4.0.15"
+  },
+  "devDependencies": {
+    "@iconify-json/system-uicons": "^1.2.2"
   }
 }
