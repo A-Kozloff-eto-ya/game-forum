@@ -9,6 +9,7 @@ uploads
 # Node dependencies
 node_modules
 database
+database/data.db
 
 # Logs
 logs

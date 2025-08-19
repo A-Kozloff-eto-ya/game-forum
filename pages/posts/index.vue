@@ -1,40 +1,36 @@
 <script setup lang="ts">
-const { $directus, $readItems, $logout, $isAuthenticated } = useNuxtApp()
-import { deleteItem } from '@directus/sdk'
-const deleteSuccessful = ref(false)
+import { usePostsStore } from '~/stores/posts';
+import { useAuthStore } from '~/stores/auth';
 
-const { data, error } = await useAsyncData('post', async () => {
-	try {
-		return await $directus.request(
-			$readItems('posts', {
-				fields: ['id', 'title', 'description', 'images', 'likes', 'user_created', "images.*", "user_created.first_name", "user_created.last_name", "user_created.id"]
-			})
-		)
-	} catch (error) {
-		console.error(error)
-	}
-})
+const postsStore = usePostsStore();
+const authStore = useAuthStore()
+// Загружаем посты при загрузке страницы
+await postsStore.fetchPosts();
 
-const authUser = await $isAuthenticated()
-if (authUser === false) {
-	throw new Error('Not authenticated')
-}
-
-const deletePost = async (id: number | string) => {
-	try {
-		await $directus.request(
-			deleteItem('posts', id)
-		)
-		data.value = data.value?.filter(post => post.id !== id)
-		deleteSuccessful.value = true
-	} catch (error) {
-		console.error(error)
+const like = async(post_id: string) => {
+	if (authStore.user && authStore.user.id) {
+		await postsStore.likePost(authStore.user.id, post_id)
+		await postsStore.fetchPosts()
+	} else {
+		console.log('Только авторизованные пользователи могут лайкать посты')
 	}
 }
+
+const unlike = async(post_id: string) => {
+	if (authStore.user && authStore.user.id) {
+		await postsStore.unlikePost(post_id)
+		await postsStore.fetchPosts()
+	} else {
+		console.log('Только авторизованные пользователи могут лайкать посты')
+	}
+}
+
 </script>
+
 <template>
-	<div v-if="data" class="flex flex-col gap-8">
-		<Post v-for="post in data" class="border h-fit w-full" :post="post" />
-		 <!-- <pre>{{ data }}</pre> -->
+	<div v-if="postsStore.posts && authStore.user" class="flex flex-col gap-8 max-w-[1040px] items-center w-full">
+		<Post v-for="post in postsStore.posts" class="border h-fit w-full" :post="post" :key="post.id"
+			:user_id="authStore.user.id" @like="(e) => like(e)" @unlike="(e) => unlike(e)" />
+		<!-- <pre>{{ postsStore.posts }}</pre> -->
 	</div>
 </template>

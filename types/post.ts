@@ -1,18 +1,32 @@
 import type { User } from "./user"
 
-export interface Image {
-  id: string
-  posts_id: number
+export interface PostsFile {
+  id: number
+  posts_id: string
   directus_files_id: string
 }
 
-export type Files = File & Image
+export interface PostLike {
+  id: string
+  user_id: string
+  post_id: string
+}
 
 export interface UserPost {
-  id?: string
+  id: string
   title: string
   description: string
-  images: Image[]
-  likes?: string
-  user_created?: User
+  files: PostsFile[] | null
+  likes: User[]
+  user_created: User
+}
+
+export interface CreatePost {
+  title: string
+  description: string
+  isGallery?: boolean
+}
+
+export interface CreateFile {
+  files: File
 }

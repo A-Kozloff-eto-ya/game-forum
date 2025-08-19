@@ -1,29 +1,11 @@
 /// <reference types="@directus/extensions/api.d.ts" />
 
-import type { DirectusFile } from "@directus/sdk";
+import type { User } from "./types/user";
+import type { UserPost, PostsFiles, PostLike } from "./types/post";
 
 interface DirectusSchema {
-	posts: Post[];
-	directus_users: DirectusUser[]
-}
-
-interface Image {
-	id: string
-	posts_id: string
-	directus_files_id: string
-}
-
-interface Post {
-	id: string
-	title: string
-	description: string
-	images: DirectusFile[]
-	likes: string
-	user_created: string;
-}
-
-interface DirectusUser {
-	id: string
-	first_name: string
-	last_name: string
+	posts: UserPost[];
+	directus_users: User[];
+	posts_files: PostsFiles[]
+	posts_likes: PostLike[]
 }

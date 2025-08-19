@@ -5,13 +5,25 @@ export default defineNuxtConfig({
 	compatibilityDate: "2024-11-01",
 	devtools: { enabled: true },
 
-	routeRules: {
-		"/directus/**": { proxy: `${import.meta.env.API_URL}/**` },
-	},
+	// 	routeRules: {
+	//     "/directus/**": {
+	//       proxy: {
+	//         to: `${import.meta.env.DIRECTUS_URL}/**`,
+	//       },
+	//     },
+	//   },
+
 	vite: {
 		plugins: [
 			tailwindcss(),
 		],
+		build: {
+			sourcemap: false, // Отключаем source maps в продакшене
+		},
+		// Игнорируем некорректные source maps
+		// esbuild: {
+		// 	drop: ['console', 'debugger'], // Удаляем console.log и debugger
+		// },
 	},
 	css: ['~/assets/index.css'],
 	modules: [
@@ -20,6 +32,7 @@ export default defineNuxtConfig({
 		"@nuxt/ui",
 		"@nuxt/image",
 		"@nuxt/icon",
+		'@pinia/nuxt'
 	],
 	ui: {
 		theme: {
