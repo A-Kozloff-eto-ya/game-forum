@@ -6,9 +6,10 @@
 .cache
 dist
 uploads
+database
+
 # Node dependencies
 node_modules
-database
 database/data.db
 
 # Logs
