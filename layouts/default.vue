@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-[100vh] items-center justify-between gap-8 overflow-y-scroll">
+  <div class="flex flex-col h-[100vh] relative items-center justify-between gap-8 overflow-y-auto">
     <AppHeader />
     <slot />
     <AppFooter>

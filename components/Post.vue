@@ -1,5 +1,5 @@
 <template>
-  <UCard class="max-w-[700px] w-full flex flex-col justify-between shadow-main rounded ring-0 bg-(--bg-secondary)"
+  <UCard class="w-full flex flex-col justify-between shadow-main rounded ring-0 bg-(--bg-secondary)"
     :ui="{ header: 'flex flex-row justify-between' }">
     <template #header>
       <div class="flex flex-col gap-4">

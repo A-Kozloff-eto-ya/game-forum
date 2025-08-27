@@ -16,6 +16,7 @@ import {
 } from '@directus/sdk';
 import type { DirectusSchema } from '~/directus.d.ts';
 import type { CreatePost, UserPost } from '~/types/post';
+import type { Subscription } from '~/types/subscription';
 import type { User } from '~/types/user';
 
 interface DirectusPlugin {
@@ -25,11 +26,12 @@ interface DirectusPlugin {
   logout: () => Promise<void>;
   isAuthenticated: () => Promise<User | false>;
   refreshToken: () => Promise<void>;
-  getPosts: (user_id?: string) => Promise<UserPost[]>;
+  getPosts: (user_id?: string | string[]) => Promise<UserPost[]>;
   createPost: (data: Partial<CreatePost>, files: File[]) => Promise<UserPost>;
   updatePost: (id: string, data: Partial<UserPost>) => Promise<UserPost>;
   deletePost: (id: string) => Promise<void>;
   getAccessToken: () => string | undefined;
+  getUserSubscribers: (user_id: string) => Promise<Subscription[]>;
   [key: string]: unknown;
 }
 
@@ -46,6 +48,7 @@ declare module '#app' {
     $updatePost: DirectusPlugin['updatePost'];
     $deletePost: DirectusPlugin['deletePost'];
     $getAccessToken: DirectusPlugin['getAccessToken'];
+    $getUserSubscribers: DirectusPlugin['getUserSubscribers'];
   }
 }
 
@@ -108,18 +111,21 @@ export default defineNuxtPlugin(() => {
     console.log('Directus: Токен обновлён');
   };
 
-  const getPosts = async (user_id: string) => {
+  const getPosts = async (user_id: string | string[]) => {
     try {
       console.log('Directus: Запрос постов...', user_id);
+      console.log(Array.isArray(user_id) ? 'array' : 'notarray')
       const result = await directus.request(
         readItems('posts', {
           fields: ['id', 'title', 'description', { likes: ['id'] }, 'likes', { user_created: ['id', 'username', 'avatar'] }, { files: ['directus_files_id', 'id', 'posts_id'] }],
           filter: {
             user_created: {
-              id: {
+              id: Array.isArray(user_id) ? {
+                _in: user_id.length > 0 ? user_id : false
+              } : {
                 _eq: user_id
               }
-            }
+            },
           },
           // sort: ['-likes']
         })
@@ -137,7 +143,7 @@ export default defineNuxtPlugin(() => {
             filter: {
               user_created: {
                 id: {
-                  _eq: user_id
+                  _in: user_id
                 }
               }
             }
@@ -226,7 +232,7 @@ export default defineNuxtPlugin(() => {
 
   const getUserInfo = async (user_id: string) => {
     try {
-      const user = await directus.request(readUser(user_id, { fields: ['id', 'avatar', 'username', 'subscribed', 'subscribers', 'email', 'first_name', 'last_name', 'description', 'last_access'] }));
+      const user = await directus.request(readUser(user_id, { fields: ['id', 'avatar', 'username', 'email', 'first_name', 'last_name', 'description', 'last_access'] }));
       console.log('Directus: User info:', user);
       return user
     } catch (error) {
@@ -254,6 +260,105 @@ export default defineNuxtPlugin(() => {
     console.log('Directus: лайк удален:', unlike);
   }
 
+  const getUserSubscribers = async (user_id: string) => {
+    try {
+      console.log('Directus: Запрос подписок...', user_id);
+      const result = await directus.request(
+        readItems('subscriptions', {
+          filter: {
+            subscribed_to: {
+              id: {
+                _eq: user_id
+              }
+            },
+          },
+          fields: [{ subscriber: ['id'] }]
+          // sort: ['-likes']
+        })
+      );
+      console.log('Directus: subscriptions:', result);
+      return result;
+    } catch (error: any) {
+      console.error('Directus: Ошибка getUserSubscribers:', error);
+
+      throw error;
+    }
+  };
+
+  const getUserSubscribedTo = async (user_id: string) => {
+    try {
+      console.log('Directus: Запрос подписок...', user_id);
+      const result = await directus.request(
+        readItems('subscriptions', {
+          filter: {
+            subscriber: {
+              id: {
+                _eq: user_id
+              }
+            },
+          },
+          fields: [{ subscribed_to: ['id'] }]
+          // sort: ['-likes']
+        })
+      );
+      console.log('Directus: subscriptions:', result);
+      return result;
+    } catch (error: any) {
+      console.error('Directus: Ошибка getUserSubscribers:', error);
+
+      throw error;
+    }
+  };
+
+  const subscribe = async (user_id: string, subscribed_to_id: string) => {
+    try {
+      const result = await directus.request(
+        createItem('subscriptions', {
+          subscriber: user_id,
+          subscribed_to: subscribed_to_id
+        })
+      )
+      console.log('Directus: create subscription:', result);
+
+      return result
+    } catch (error) {
+
+    }
+  }
+
+  const unsubscribe = async (user_id: string, subscribed_to_id: string) => {
+    try {
+      const findSubscription = await directus.request(
+        readItems('subscriptions', {
+          filter: {
+            _and: [
+              {
+                subscriber: {
+                  _eq: user_id
+                },
+                subscribed_to: {
+                  _eq: subscribed_to_id
+                }
+              }
+            ]
+          },
+          fields: ['id']
+        })
+      )
+      if (findSubscription) {
+        const subscriptionToDelete = findSubscription[0].id
+        const deleteSubscription = await directus.request(
+          deleteItem('subscriptions', subscriptionToDelete)
+        )
+        console.log(deleteSubscription)
+        return deleteSubscription
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+
   return {
     provide: {
       directus,
@@ -269,7 +374,11 @@ export default defineNuxtPlugin(() => {
       getUserInfo,
       getAccessToken,
       likePost,
-      unlikePost
+      unlikePost,
+      getUserSubscribers,
+      subscribe,
+      unsubscribe,
+      getUserSubscribedTo
     },
   };
 });

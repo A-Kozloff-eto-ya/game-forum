@@ -6,6 +6,7 @@ export const usePostsStore = defineStore('posts', {
     state: () => ({
         posts: [] as UserPost[],
         error: null as string | null,
+        postsSource: '' as string
     }),
     getters: {
         // Посты текущего пользователя
@@ -16,7 +17,7 @@ export const usePostsStore = defineStore('posts', {
         },
     },
     actions: {
-        async fetchPosts(user_id?: string) {
+        async fetchPosts(user_id?: string | string[]) {
             const { $getPosts } = useNuxtApp();
             try {
                 console.log('PostsStore: Загрузка постов...');
@@ -98,5 +99,6 @@ export const usePostsStore = defineStore('posts', {
         console.log('PostsStore: Гидратация, initialState=', initialState);
         state.posts = initialState.posts;
         state.error = initialState.error;
+        state.postsSource = initialState.postsSource
     },
 });

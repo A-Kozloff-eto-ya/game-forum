@@ -8,20 +8,20 @@
     <template #account v-if="authStore.user">
       <div class="relative w-full h-fit border rounded shadow-main bg-(--bg-secondary) overflow-hidden">
         <!-- Header Background -->
-        <div class="w-full h-32 bg-gradient-to-t from-sky-500 to-indigo-500"></div>
+        <div class="w-full h-50 bg-gradient-to-t from-sky-500 to-indigo-500"></div>
 
         <!-- Avatar and User Info -->
         <div class="relative px-6 py-4">
           <!-- Avatar -->
-          <div class="absolute -top-16 left-6">
+          <div class="absolute -top-28 left-6">
             <UAvatar v-if="authStore.user.avatar" :src="`http://localhost:8055/assets/${authStore.user.avatar}`"
-              class="h-32 w-32 ring-4 ring-white " fit="cover" alt="User avatar" />
-            <UAvatar v-else class="h-32 w-32 ring-4 ring-white " fit="cover" alt="User avatar" />
+              class="h-50 w-50 ring-4 ring-white " fit="cover" alt="User avatar" />
+            <UAvatar v-else class="h-50 w-50 ring-4 ring-white " fit="cover" alt="User avatar" />
 
           </div>
 
           <!-- User Info Section -->
-          <div class="mt-16 space-y-4">
+          <div class="mt-20 space-y-4">
             <!-- Name and Username -->
             <div class="flex items-center justify-between">
               <div>
@@ -48,12 +48,13 @@
                   class="cursor-pointer">постов</span>
               </div>
               <div>
-                <span class="font-medium text-gray-900 cursor-pointer">{{ authStore.user.subscribers?.length }}</span>
-                <span class="cursor-pointer">подписчиков</span>
+                <span class="font-medium text-gray-900 cursor-pointer">{{
+                  subscriptionsStore.userSubscribers.length }} </span>
+                <span class="cursor-pointer"> подписчиков</span>
               </div>
               <div>
-                <span class="font-medium text-gray-900 cursor-pointer">{{ authStore.user.subscribed ?
-                  authStore.user.subscribed.length : 0 }}</span> <span class="cursor-pointer">подписок</span>
+                <span class="font-medium text-gray-900 cursor-pointer">{{
+                  subscriptionsStore.userSubscribedTo.length }}</span> <span class="cursor-pointer">подписок</span>
               </div>
             </div>
           </div>
@@ -84,7 +85,8 @@
     </template>
     <template #posts="{ item }">
       <div v-if="postsStore.userPosts.length > 0 && authStore.user" class="flex flex-col gap-8">
-        <Post v-for="post in postsStore.userPosts" :user_id="authStore.user.id" class="border h-fit w-full" :post="post">
+        <Post v-for="post in postsStore.userPosts" :user_id="authStore.user.id" class="border h-fit w-full"
+          :post="post">
           <template #deleteButton>
             <UButton icon="i-lucide-trash-2" color="neutral" class="h-fit cursor-pointer"
               @click="postsStore.deletePost(post.id)" />
@@ -134,7 +136,7 @@
                 <UBadge color="neutral">123</UBadge>
               </div>
               <div v-if="authStore.user" class="flex flex-row gap-4 justify-between items-center">
-                <UBadge color="neutral" class="cursor-pointer" >@{{
+                <UBadge color="neutral" class="cursor-pointer">@{{
                   authStore.user.username
                   }}
                 </UBadge>
@@ -153,7 +155,7 @@
             <slot name="publishButton" />
           </template>
           <UCheckbox v-model="state.isGallery" :label="state.isGallery ? 'Галерея' : 'Сетка'" />
-          <UButton label="Создать пост" @click="submitPost"/>
+          <UButton label="Создать пост" @click="submitPost" />
         </UCard>
       </div>
     </template>
@@ -166,17 +168,19 @@ import * as z from 'zod'
 
 const authStore = useAuthStore();
 const postsStore = usePostsStore();
-
+const subscriptionsStore = useSubscriptionsStore()
 // Проверяем авторизацию
 if (!authStore.isAuthenticated) {
   throw createError({ statusCode: 401, message: 'Не авторизовано', fatal: true });
 }
 
-// Загружаем посты, если ещё не загружены
-if (!postsStore.posts.length) {
-  await postsStore.fetchPosts(authStore.user?.id);
-}
-
+onMounted(async () => {
+  if (authStore.user && authStore.user.id) {
+    await postsStore.fetchPosts(authStore.user?.id);
+    await subscriptionsStore.getUserSubscribers(authStore.user.id)
+    await subscriptionsStore.getUserSubscribedTo(authStore.user.id)
+  }
+})
 const toast = useToast()
 
 const state = reactive<{
@@ -269,30 +273,30 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const submitPost = async () => {
-    // Проверяем, есть ли файлы
-    if (state.files.length === 0) {
-        toast.add({
-            title: 'Ошибка',
-            description: 'Пожалуйста, добавьте хотя бы одно изображение.',
-            icon: 'i-heroicons-exclamation-circle',
-        });
-        return;
-    }
-    console.log('submit',state.files)
-    // Вызываем экшен createPost из Pinia Store
-    await postsStore.createPost({
-        title: state.title,
-        description: state.description,
-        isGallery: state.isGallery,
-    }, state.files);
-    
-    // Если пост успешно создан, очищаем форму
-    if (!postsStore.error) {
-        state.title = '';
-        state.description = '';
-        state.files = [];
-        state.isGallery = false;
-    }
+  // Проверяем, есть ли файлы
+  if (state.files.length === 0) {
+    toast.add({
+      title: 'Ошибка',
+      description: 'Пожалуйста, добавьте хотя бы одно изображение.',
+      icon: 'i-heroicons-exclamation-circle',
+    });
+    return;
+  }
+  console.log('submit', state.files)
+  // Вызываем экшен createPost из Pinia Store
+  await postsStore.createPost({
+    title: state.title,
+    description: state.description,
+    isGallery: state.isGallery,
+  }, state.files);
+
+  // Если пост успешно создан, очищаем форму
+  if (!postsStore.error) {
+    state.title = '';
+    state.description = '';
+    state.files = [];
+    state.isGallery = false;
+  }
 }
 
 // const onSubmit = async () => {

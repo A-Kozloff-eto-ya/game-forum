@@ -9,6 +9,7 @@ definePageMeta({
 const postsStore = usePostsStore()
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
+const subscriptionsStore = useSubscriptionsStore()
 const route = useRoute()
 
 // When accessing /posts/1, route.params.id will be 1
@@ -16,8 +17,18 @@ console.log(route.params.id)
 
 await Promise.all(
 	[postsStore.fetchPosts(route.params.id.toString()),
-	usersStore.fetchUser(route.params.id.toString())]
+	usersStore.fetchUser(route.params.id.toString()),
+	]
 )
+
+onMounted(async () => {
+	await postsStore.fetchPosts(route.params.id.toString()),
+		await usersStore.fetchUser(route.params.id.toString())
+	if (usersStore.user && usersStore.user.id) {
+		await subscriptionsStore.getUserSubscribers(usersStore.user.id)
+	}
+})
+// subscriptionsStore.getUserSubscribers(usersStore.user.id)
 
 const like = async (post_id: string) => {
 	if (authStore.user && authStore.user.id) {
@@ -64,8 +75,13 @@ const unlike = async (post_id: string) => {
 								@{{ usersStore.user.username }}
 							</p>
 						</div>
-						<UButton label="Редактировать профиль" color="neutral" variant="outline" size="sm"
-							class="hover:bg-gray-100" />
+						<UButton label="Отписаться"
+							v-if="subscriptionsStore.userSubscribers.some(subs => subs.subscriber.id === authStore.user.id)"
+							color="neutral" variant="outline" size="sm" class="hover:bg-gray-100 cursor-pointer"
+							@click="subscriptionsStore.deleteSubscription(authStore.user?.id, usersStore.user.id)" />
+						<UButton label="Подписаться" v-else color="neutral" variant="outline" size="sm"
+							class="hover:bg-gray-100 cursor-pointer"
+							@click="subscriptionsStore.createSubscription(authStore.user?.id, usersStore.user.id)" />
 					</div>
 
 					<!-- Bio -->
@@ -80,13 +96,12 @@ const unlike = async (post_id: string) => {
 						</div>
 						<div>
 							<span class="font-medium text-gray-900 cursor-pointer">{{
-								usersStore.user.subscribers?.length
-							}}</span>
-							<span class="cursor-pointer"> подписчиков</span>
+								subscriptionsStore.userSubscribers.length }}</span>
+							<span class="cursor-pointer">подписчиков</span>
 						</div>
 						<div>
-							<span class="font-medium text-gray-900 cursor-pointer">{{ usersStore.user.subscribed ?
-								usersStore.user.subscribed.length : 0 }}</span> <span
+							<span class="font-medium text-gray-900 cursor-pointer">{{
+								subscriptionsStore.userSubscribedTo.length }}</span> <span
 								class="cursor-pointer">подписок</span>
 						</div>
 					</div>
@@ -117,9 +132,12 @@ const unlike = async (post_id: string) => {
 		</div>
 		<!-- <pre>{{ route.params.id }}</pre>
 		<pre>{{ postsStore.posts }}</pre> -->
-		<div v-if="postsStore.posts && authStore.user" class="flex flex-col items-center gap-8">
-			<Post v-for="post in postsStore.posts" class="border h-fit w-full" :post="post" :user_id="authStore.user.id"
-				@like="(e) => like(e)" @unlike="(e) => unlike(e)" />
+		<div v-if="postsStore.posts && authStore.user" class="flex flex-row gap-8">
+			<div class="flex flex-col gap-8 flex-4">
+				<Post v-for="post in postsStore.posts" class="border h-fit w-full" :post="post"
+					:user_id="authStore.user.id" @like="(e) => like(e)" @unlike="(e) => unlike(e)" />
+			</div>
+			<div class="shadow-main flex-2 border h-20 w-full">INFO</div>
 		</div>
 	</div>
 </template>
